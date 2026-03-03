@@ -27,7 +27,7 @@ namespace VeterinariaWeb.Controllers
             var listaProductos = new List<Producto>();
             using (var conexion = new SqlConnection(cadenaConexion))
             {
-                using(var comando = new SqlCommand("SELECT * FROM Productos", conexion))
+                using(var comando = new SqlCommand("SELECT P.*, CP.Nombre AS NombreCategoria FROM Productos P INNER JOIN CategoriaProductos CP ON P.CategoriaID = CP.ID", conexion))
                 {
                     conexion.Open();
                     using (var lector = comando.ExecuteReader())
@@ -36,12 +36,7 @@ namespace VeterinariaWeb.Controllers
                         {
                             while (lector.Read())
                             {
-                                listaProductos.Add(new Producto
-                                {
-                                    ID = lector.GetInt32(0),
-                                    Nombre = lector.GetString(1),
-                                    Descripcion = lector.GetString(2)
-                                });
+                                listaProductos.Add(convertirReaderEnProducto(lector));
                             }
                         }
                     }
@@ -55,7 +50,7 @@ namespace VeterinariaWeb.Controllers
             var producto = new Producto();
             using (var conexion = new SqlConnection(cadenaConexion))
             {
-                using (var comando = new SqlCommand("SELECT * FROM Productos WHERE ID = @ID", conexion))
+                using (var comando = new SqlCommand("SELECT P.*, CP.Nombre AS NombreCategoria FROM Productos P INNER JOIN CategoriaProductos CP ON P.CategoriaID = CP.ID WHERE P.ID = @ID", conexion))
                 {
                     comando.Parameters.AddWithValue("@ID", id);
                     conexion.Open();
@@ -64,13 +59,7 @@ namespace VeterinariaWeb.Controllers
                         if(lector!= null && lector.HasRows)
                         {
                             lector.Read();
-                            producto = new Producto()
-                            {
-                                ID = lector.GetInt32(0),
-                                Nombre = lector.GetString(1),
-                                Descripcion = lector.GetString(2)
-
-                            };
+                            producto = convertirReaderEnProducto(lector);
                         }
                     }
                 }
@@ -78,6 +67,25 @@ namespace VeterinariaWeb.Controllers
 
             return producto;
         }
+
+        private Producto convertirReaderEnProducto(SqlDataReader lector)
+        {
+            return new Producto()
+            {
+                ID = lector.GetInt32(0),
+                Nombre = lector.GetString(1),
+                Descripcion = lector.GetString(2),
+                Imagen = lector.GetString(3),
+                Precio = lector.GetDecimal(4),
+                CategoriaID = lector.GetInt32(5),
+                Categoria = new Categoria()
+                {
+                    ID = lector.GetInt32(5),
+                    Nombre = lector.GetString(7)
+                }
+            };
+        }
+
         #endregion
     }
 }
