@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using VeterinariaWeb.Models;
 
@@ -6,7 +7,7 @@ namespace VeterinariaWeb.Controllers
 {
     public class ProductosController : Controller
     {
-        private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User=sa; password=sqladmin;TrustServerCertificate=true";
+        private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User Id=APPData; password=123456;TrustServerCertificate=true";
 
         public IActionResult Index()
         {
@@ -18,6 +19,21 @@ namespace VeterinariaWeb.Controllers
         {
             var productoBuscado = obtenerProductoPorId(id);
             return View(productoBuscado);
+        }
+
+        public IActionResult Create()
+        {
+            var categorias = obtenerCategorias();
+            ViewBag.Categorias = new SelectList(categorias, "ID", "Nombre");
+            return View(new Producto());
+        }
+
+
+        [HttpPost]
+        public IActionResult Create(Producto producto)
+        {
+            var exito = CrearProducto(producto);
+            return RedirectToAction("Index");
         }
 
         #region . Private methods .
@@ -68,6 +84,46 @@ namespace VeterinariaWeb.Controllers
             return producto;
         }
 
+        private List<Categoria> obtenerCategorias()
+        {
+            var listaCategorias = new List<Categoria>();
+            using (var conexion = new SqlConnection(cadenaConexion))
+            {
+                using (var comando = new SqlCommand("SELECT * FROM CategoriaProductos", conexion))
+                {
+                    conexion.Open();
+                    using (var reader = comando.ExecuteReader())
+                    {
+                        if(reader!= null && reader.HasRows)
+                        {
+                            while (reader.Read())
+                                listaCategorias.Add(convertirReaderEnCategoria(reader));
+                        }
+                    }
+                }
+            }
+            return listaCategorias;
+        }
+
+        private bool CrearProducto(Producto producto)
+        {
+            var exito = false;
+            using (var conexion = new SqlConnection(cadenaConexion))
+            {
+                using (var comando = new SqlCommand("INSERT INTO Productos(Nombre, Descripcion, CategoriaID, Precio, Activo) " +
+                    "VALUES(@nombre,@descripcion,@categoria,@precio,'1')", conexion))
+                {
+                    comando.Parameters.AddWithValue("@nombre", producto.Nombre);
+                    comando.Parameters.AddWithValue("@descripcion", producto.Descripcion);
+                    comando.Parameters.AddWithValue("@categoria", producto.CategoriaID);
+                    comando.Parameters.AddWithValue("@precio", producto.Precio);
+                    conexion.Open();
+                    exito = comando.ExecuteNonQuery() > 0;
+                }
+            }
+            return exito;
+        }
+
         private Producto convertirReaderEnProducto(SqlDataReader lector)
         {
             return new Producto()
@@ -83,6 +139,16 @@ namespace VeterinariaWeb.Controllers
                     ID = lector.GetInt32(5),
                     Nombre = lector.GetString(7)
                 }
+            };
+        }
+
+        private Categoria convertirReaderEnCategoria(SqlDataReader lector)
+        {
+            return new Categoria
+            {
+                ID = lector.GetInt32(0),
+                Nombre = lector.GetString(1),
+                Activo = lector.GetString(2),
             };
         }
 
