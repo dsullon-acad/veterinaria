@@ -22,16 +22,10 @@
                 @Html.DisplayNameFor(model => model.Descripcion)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Imagen)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Precio)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CategoriaID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Activo)
             </th>
             <th></th>
         </tr>
@@ -49,16 +43,10 @@
                 @Html.DisplayFor(modelItem => item.Descripcion)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Imagen)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.Precio)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Categoria.Nombre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Activo)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new {  id=item.ID  }) |
@@ -69,3 +57,14 @@
 }
     </tbody>
 </table>
+
+<nav aria-label="Page Navigation">
+    <ul class="pagination pagination-sm">
+        @for (int i = 0; i < ViewBag.paginas; i++)
+        {
+            <li class="page-item">
+                <a class="page-link" asp-route-page="@(i + 1)">@(i + 1)</a>
+            </li>
+        }
+    </ul>
+</nav>

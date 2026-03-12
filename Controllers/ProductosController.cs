@@ -9,10 +9,18 @@ namespace VeterinariaWeb.Controllers
     {
         private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User Id=APPData; password=123456;TrustServerCertificate=true";
 
-        public IActionResult Index()
+        public IActionResult Index(int page = 1)
         {
             var listaProductos = obtenerProductos();
-            return View(listaProductos);
+            int registrosPorPagina = 8;
+            int totalProductos = listaProductos.Count;
+            int cantidadPaginas = Convert.ToInt32(Math.Ceiling((double)totalProductos / registrosPorPagina));
+
+            int registrosOmitir = registrosPorPagina * (page -1);
+
+            ViewBag.paginas = cantidadPaginas;
+            
+            return View(listaProductos.Skip(registrosOmitir).Take(registrosPorPagina));
         }
 
         public IActionResult Detail(int id)
