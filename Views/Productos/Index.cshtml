@@ -9,61 +9,43 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Nombre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Descripcion)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Precio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CategoriaID)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nombre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Descripcion)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Precio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Categoria.Nombre)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new {  id=item.ID  }) |
-                @Html.ActionLink("🔎 Ver Detalles", "Detail", new { id=item.ID }) |
-                @Html.ActionLink("Delete", "Delete", new {  id=item.ID })
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+
+<form class="row g-3">
+    <div class="col-auto">
+        <label for="categoria" class="form-label">Categoría</label>
+        <select class="form-select" name="categoria" asp-items="ViewBag.categorias">
+            <option value="">--TODOS--</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <label for="producto" class="form-label">Producto</label>
+        <input class="form-control" type="text" name="producto" value="@ViewBag.busquedaActual" />
+    </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+<hr />
+<div class="row row-cols-1 row-cols-3">
+    @foreach(var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100">
+                <img src="@item.Imagen" class="card-img-top" alt="@item.Nombre">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Nombre</h5>
+                    <p class="card-text">@item.Descripcion</p>
+                    <p class="card-text">S/. @item.Precio</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
 
 <nav aria-label="Page Navigation">
     <ul class="pagination pagination-sm">
         @for (int i = 0; i < ViewBag.paginas; i++)
         {
-            <li class="page-item">
-                <a class="page-link" asp-route-page="@(i + 1)">@(i + 1)</a>
+            <li class="page-item @(ViewBag.paginaActual == (i+ 1) ? "active": "")">
+                <a class="page-link" asp-route-page="@(i + 1)" asp-route-categoria="@ViewBag.categoriaActual">@(i + 1)</a>
             </li>
         }
     </ul>

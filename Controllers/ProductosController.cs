@@ -7,18 +7,28 @@ namespace VeterinariaWeb.Controllers
 {
     public class ProductosController : Controller
     {
-        private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User Id=APPData; password=123456;TrustServerCertificate=true";
+        private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User Id=sa;password=sqladmin;TrustServerCertificate=true";
 
-        public IActionResult Index(int page = 1)
+        public IActionResult Index(int page = 1, string? categoria = null, string? producto = null)
         {
             var listaProductos = obtenerProductos();
+            if (categoria != null)
+                listaProductos = listaProductos.Where(p => p.CategoriaID == Convert.ToInt32(categoria)).ToList();
+            if (producto != null)
+                listaProductos = listaProductos.Where(p => p.Nombre.ToLower().Contains(producto.ToLower()) || 
+                        p.Descripcion.ToLower().Contains(producto.ToLower())).ToList();
+            var listadoCategorias = obtenerCategorias();
             int registrosPorPagina = 8;
             int totalProductos = listaProductos.Count;
             int cantidadPaginas = Convert.ToInt32(Math.Ceiling((double)totalProductos / registrosPorPagina));
 
             int registrosOmitir = registrosPorPagina * (page -1);
 
+            ViewBag.categorias = new SelectList(listadoCategorias, "ID", "Nombre", categoria);
             ViewBag.paginas = cantidadPaginas;
+            ViewBag.paginaActual = page;
+            ViewBag.categoriaActual = categoria;
+            ViewBag.busquedaActual = producto;
             
             return View(listaProductos.Skip(registrosOmitir).Take(registrosPorPagina));
         }
