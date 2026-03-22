@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using VeterinariaWeb.Models;
+using VeterinariaWeb.ViewModels;
 
 namespace VeterinariaWeb.Controllers
 {
     public class ProductosController : Controller
     {
-        private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User Id=sa;password=sqladmin;TrustServerCertificate=true";
+        private readonly string cadenaConexion = "Server=localhost;database=veterinaria;User Id=APPData;password=123456;TrustServerCertificate=true";
 
         public IActionResult Index(int page = 1, string? categoria = null, string? producto = null)
         {
@@ -43,12 +44,41 @@ namespace VeterinariaWeb.Controllers
         {
             var categorias = obtenerCategorias();
             ViewBag.Categorias = new SelectList(categorias, "ID", "Nombre");
-            return View(new Producto());
+            return View(new ProductoVM());
         }
 
         [HttpPost]
-        public IActionResult Create(Producto producto)
+        public IActionResult Create(ProductoVM model)
         {
+            if (!ModelState.IsValid) { 
+                var categorias = obtenerCategorias();
+                ViewBag.Categorias = new SelectList(categorias, "ID", "Nombre");
+                return View(model);
+            }
+
+
+            /*TRABAJAR CON LA IMAGEN*/
+            string nombreImagen = "";
+
+            if (model.ImageFile != null) {
+                nombreImagen = $"{Guid.NewGuid().ToString()}{Path.GetExtension(model.ImageFile.FileName)}";
+                var pathImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/img/productos", nombreImagen);
+
+                using (var stream = new FileStream(pathImagen, FileMode.Create))
+                {
+                    model.ImageFile.CopyTo(stream);
+                }
+            }
+
+            var producto = new Producto
+            {
+                Nombre = model.Nombre,
+                Descripcion = model.Descripcion,
+                CategoriaID = model.CategoriaID,
+                Precio = model.Precio,
+                Imagen = $"assets/img/productos/{nombreImagen}"
+            };
+
             var exito = CrearProducto(producto);
             return RedirectToAction("Index");
         }
@@ -144,13 +174,14 @@ namespace VeterinariaWeb.Controllers
             var exito = false;
             using (var conexion = new SqlConnection(cadenaConexion))
             {
-                using (var comando = new SqlCommand("INSERT INTO Productos(Nombre, Descripcion, CategoriaID, Precio, Activo) " +
-                    "VALUES(@nombre,@descripcion,@categoria,@precio,'1')", conexion))
+                using (var comando = new SqlCommand("INSERT INTO Productos(Nombre, Descripcion, CategoriaID, Precio, PathImagen, Activo) " +
+                    "VALUES(@nombre,@descripcion,@categoria,@precio, @imagen,'1')", conexion))
                 {
                     comando.Parameters.AddWithValue("@nombre", producto.Nombre);
                     comando.Parameters.AddWithValue("@descripcion", producto.Descripcion);
                     comando.Parameters.AddWithValue("@categoria", producto.CategoriaID);
                     comando.Parameters.AddWithValue("@precio", producto.Precio);
+                    comando.Parameters.AddWithValue("@imagen", producto.Imagen);
                     conexion.Open();
                     exito = comando.ExecuteNonQuery() > 0;
                 }
