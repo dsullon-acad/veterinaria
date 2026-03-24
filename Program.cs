@@ -1,7 +1,15 @@
+using VeterinariaWeb.Data.Infrastructure;
+using VeterinariaWeb.Data.Mock;
+using VeterinariaWeb.Data.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// INYECTAR DEPENDENCIAS
+builder.Services.AddScoped<ICategoria, CategoriaMock>();
+builder.Services.AddScoped<IProducto, ProductoRepository>();
 
 var app = builder.Build();
 
